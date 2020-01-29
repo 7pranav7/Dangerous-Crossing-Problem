@@ -1,0 +1,610 @@
+//AI class
+package DangerousCrossing;
+
+public interface AI {
+	public void solve();
+}
+
+
+//Astar class
+package DangerousCrossing;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Astar implements AI {
+	private Queue<ProblemModel> unvisitedPM;
+	private ArrayList<ProblemModel> visited;
+
+
+	public Astar(ProblemModel problemModel){
+
+		unvisitedPM = new LinkedList<ProblemModel>();
+		visited = new ArrayList<ProblemModel>();
+
+
+		for(ProblemModel pm : problemModel.getSubNodes()){
+
+			unvisitedPM.add(pm);
+		}
+		visited.add(problemModel);
+
+	}
+	
+	private ProblemModel findCheapestNode(){
+		ProblemModel ret = unvisitedPM.peek();
+
+		for(ProblemModel p : unvisitedPM){ 
+			//f(s) = depth + sum of runner costs
+			if(p.getTotalTime()+ p.getDepth() <= ret.getTotalTime() + ret.getDepth()) ret = p;
+		}
+		unvisitedPM.remove(ret);
+		return ret;
+	}
+
+
+
+	@Override
+	public void solve() {
+		long startTime = System.nanoTime();
+
+		while(!unvisitedPM.isEmpty()){
+			ProblemModel current = findCheapestNode();
+			for(ProblemModel pm : current.getSubNodes()){		
+				if(!visited.contains(pm) && !unvisitedPM.contains(pm)){					
+					unvisitedPM.add(pm);
+				}			
+			}
+
+			
+			//end Condition: If no more runners to transport.
+			if(current.getSideStart().isEmpty()){
+				System.out.print( "\n"+ "StartSide Runners: ");
+				for(Integer r: current.getSideStart()){
+					System.out.print( " " +r) ;
+				}
+				System.out.print( "\n" + "EndSide Runners: ");
+				for(Integer r: current.getSideEnd()){
+					System.out.print( " " + r);
+				}
+
+				printPathTaken(current);
+				System.out.print( "\n" + "------------done--------------");
+				long endTime = System.nanoTime();
+				long duration = ((endTime - startTime)/1000000);
+				System.out.print( "\n" + "-AS1 Time taken: " + duration + "ms");
+
+
+				break;
+			}
+
+			visited.add(current);
+
+
+
+
+
+
+		}
+
+	}
+	
+	
+	private void printPathTaken(ProblemModel current) {
+		System.out.print( "\n"+ "StartSide Runners: ");
+		for(Integer r: current.getSideStart()){
+			System.out.print( " " +r) ;
+		}
+		System.out.print( "\n" + "EndSide Runners: ");
+		for(Integer r: current.getSideEnd()){
+			System.out.print( " " + r);
+		}
+		System.out.print( "\n" + "Direction: " + ((!current.isTorch())? "Forwards":"Backwards"));
+		System.out.print( "\n" + "Total Time: " + current.getTotalTime());
+		System.out.print( "\n" + "Depth: " + current.getDepth());
+		System.out.print( "\n" + "--------------------------");
+		if(current.getPredecessor() != null)printPathTaken(current.getPredecessor());
+	}
+}
+
+
+//BfsAI class
+package DangerousCrossing;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class BfsAI implements AI {
+	
+	private Queue<ProblemModel> unvisitedPM;
+	private ArrayList<ProblemModel> visited;
+	
+	public BfsAI(ProblemModel problemModel) {
+		// TODO Auto-generated constructor stub
+		unvisitedPM = new LinkedList<ProblemModel>();
+		visited = new ArrayList<ProblemModel>();
+		
+		
+		for(ProblemModel pm : problemModel.getSubNodes()){
+			unvisitedPM.add(pm);
+		}
+		visited.add(problemModel);
+	}
+	
+	private void printPathTaken(ProblemModel current) {
+		
+		System.out.print( "\n"+ "StartSide Runners: ");
+		for(Integer r: current.getSideStart()){
+			System.out.print( " " +r) ;
+		}
+		System.out.print( "\n" + "EndSide Runners: ");
+		for(Integer r: current.getSideEnd()){
+			System.out.print( " " + r);
+		}
+		System.out.print( "\n" + "Direction: " + ((!current.isTorch())? "Forwards":"Backwards"));
+		System.out.print( "\n" + "Total Time: " + current.getTotalTime());
+		System.out.print( "\n" + "--------------------------");
+		if(current.getPredecessor() != null)printPathTaken(current.getPredecessor());
+	}
+
+	@Override
+	public void solve() {
+		// TODO Auto-generated method stub
+		long startTime = System.nanoTime();
+
+		while(!unvisitedPM.isEmpty()){
+			ProblemModel current = unvisitedPM.remove();
+	
+			for(ProblemModel pm : current.getSubNodes()){
+				if(!visited.contains(pm) && !unvisitedPM.contains(pm)){
+					unvisitedPM.add(pm);
+				}
+				
+			
+			}
+			if(current.getSideStart().isEmpty()){
+				System.out.print( "\n"+ "StartSide Runners: ");
+				for(Integer r: current.getSideStart()){
+					System.out.print( " " +r) ;
+				}
+				System.out.print( "\n" + "EndSide Runners: ");
+				for(Integer r: current.getSideEnd()){
+					System.out.print( " " + r);
+				}
+
+				printPathTaken(current);
+				System.out.print( "\n" + "------------done--------------");
+				long endTime = System.nanoTime();
+				long duration = ((endTime - startTime)/1000000);
+				System.out.print( "\n" + "-BFS Time taken: " + duration + "ms");
+				
+				
+				break;
+			}
+			
+			visited.add(current);
+			
+		}
+	}
+	
+}
+
+//DfsAI class
+package DangerousCrossing;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Stack;
+
+public class DfsAI implements AI {
+	
+	private Stack<ProblemModel> unvisitedPM;
+	private ArrayList<ProblemModel> visited;
+	private Comparator cmp;
+	
+	public DfsAI(ProblemModel problemModel) {
+		cmp = Collections.reverseOrder();
+		unvisitedPM = new Stack<ProblemModel>();
+		visited = new ArrayList<ProblemModel>();
+		for(ProblemModel pm : problemModel.getSubNodes()){
+			unvisitedPM.add(pm);
+		}
+		visited.add(problemModel);
+		
+	}
+	
+private void printPathTaken(ProblemModel current) {
+		
+		System.out.print( "\n"+ "StartSide Runners: ");
+		for(Integer r: current.getSideStart()){
+			System.out.print( " " +r) ;
+		}
+		System.out.print( "\n" + "EndSide Runners: ");
+		for(Integer r: current.getSideEnd()){
+			System.out.print( " " + r);
+		}
+		System.out.print( "\n" + "Direction: " + ((!current.isTorch())? "Forwards":"Backwards"));
+		System.out.print( "\n" + "Total Time: " + current.getTotalTime());
+		System.out.print( "\n" + "--------------------------");
+		if(current.getPredecessor() != null)printPathTaken(current.getPredecessor());
+	}
+	
+	@Override
+	public void solve() {
+		// TODO Auto-generated method stub
+		long startTime = System.nanoTime();
+		while(!unvisitedPM.isEmpty()){
+			
+			ProblemModel current = unvisitedPM.pop();
+					
+			for(ProblemModel pm : current.getSubNodes()){
+				if(!visited.contains(pm) && !unvisitedPM.contains(pm)){
+					unvisitedPM.push(pm);
+				}
+			
+			}
+			
+			if(current.getSideStart().isEmpty()){
+				System.out.print( "\n"+ "StartSide Runners: ");
+				for(Integer r: current.getSideStart()){
+					System.out.print( " " +r) ;
+				}
+				System.out.print( "\n" + "EndSide Runners: ");
+				for(Integer r: current.getSideEnd()){
+					System.out.print( " " + r);
+				}
+
+				printPathTaken(current);
+				System.out.print( "\n" + "------------done--------------");
+				
+				long endTime = System.nanoTime();
+				long duration = ((endTime - startTime)/1000000);
+				System.out.print( "\n" + "-DFS Time taken: " + duration + "ms");
+				break;
+			}
+			
+			visited.add(current);
+		}
+	}
+
+}
+
+//ProblemModel class
+package DangerousCrossing;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class ProblemModel {
+	private ArrayList<Integer> sideEnd;
+	private ArrayList<Integer> sideStart;
+	private int totalTime;
+	private boolean torch;
+	private ProblemModel predecessor;
+	private int depth;
+	private int cost;
+	private int cost2;
+	
+	public ProblemModel() {
+		this.sideEnd = new ArrayList<Integer>();
+		this.sideStart = new ArrayList<Integer>();
+		this.totalTime = 0;
+		this.torch = true;
+		this.depth = 0;
+		this.cost = 0;
+		this.cost2 = 0;
+	}
+	
+	public ProblemModel(ArrayList<Integer> sideStart, ArrayList<Integer> sideEnd, int totalTime){
+		this.sideEnd = new ArrayList<Integer>();
+		this.sideStart = new ArrayList<Integer>();
+		this.totalTime = 0;
+		this.torch = true;
+		for(Integer r: sideEnd)this.sideEnd.add(0 + r);
+
+		for(Integer r: sideStart)this.sideStart.add(0+r);
+
+		this.totalTime += totalTime;
+	}
+	
+	public ArrayList<Integer> getSideEnd(){
+		return this.sideEnd;
+	}
+	
+	public void setSideEnd(ArrayList<Integer> sideEnd) {
+		this.sideEnd = sideEnd;
+	}
+	
+	public ArrayList<Integer> getSideStart(){
+		return this.sideStart;
+	}
+	
+	public void setSideStart(ArrayList<Integer> sideStart) {
+		this.sideStart = sideStart;
+	}
+	
+	public int getTotalTime() {
+		return this.totalTime;
+	}
+	
+	public ProblemModel(ProblemModel pm){
+		this(pm.getSideStart(), pm.getSideEnd(), pm.getTotalTime());
+	}
+	
+	
+	private void setTotaTime(int total) {
+		this.totalTime = total;
+	}
+	
+	public ProblemModel getPredecessor() {
+		return this.predecessor;
+	}
+	
+	public void setPredecessor(ProblemModel pm) {
+		this.predecessor = pm;
+	}
+	
+	public int getDepth() {
+		return this.depth;
+	}
+	
+	public void setDepth(int depth) {
+		this.depth = depth;
+	}
+	
+	public int getCost() {
+		return this.cost;
+	}
+	
+	public int getCost2() {
+		return this.cost2;
+	}
+	
+	public static void main(String args[]){
+		ArrayList<Integer> Integers = new ArrayList<Integer>();
+		for(int i = 4; i >1; i--)Integers.add(new Integer(i));
+		Integers.add(new Integer(19));
+		Integers.add(new Integer(6));
+		for(Integer pm : Integers)System.out.println("" + pm);
+		System.out.println("==================================================");
+		Collections.sort(Integers);
+		for(Integer pm : Integers)System.out.println("" + pm);
+	}
+	
+	public int sumSpeeds(ArrayList<Integer> in) {
+		int sum = 0;
+		for (Integer i : in) {
+			sum+= i;
+		}
+		return sum;
+	}
+	
+	public boolean isTorch() {
+		return torch;
+	}
+	
+	private void cross1EndToStart(ArrayList<ProblemModel> subNodes) {
+		for(int i = 0; i < this.sideEnd.size() ; i ++){
+			ProblemModel temp = new ProblemModel(sideStart, sideEnd, totalTime);
+			temp.setPredecessor(this);
+			temp.setDepth(this.depth +1);
+			temp.sideStart.add(temp.sideEnd.get(i));
+
+			temp.totalTime += (temp.sideEnd.get(i));
+			temp.cost += (temp.sideEnd.get(i));
+			temp.cost2 += (temp.sideEnd.get(i));
+
+			temp.sideEnd.remove(i);
+			temp.torch = !this.isTorch();
+
+
+			subNodes.add(temp);
+		}
+	}
+	
+	private void cross2EndToStart(ArrayList<ProblemModel> subNodes) {
+		for(int i = 0; i < this.sideEnd.size(); i ++){
+			for(int j = i+1; j < this.sideEnd.size() ; j ++){
+				ProblemModel temp = new ProblemModel(sideStart, sideEnd, totalTime);
+				temp.setPredecessor(this);
+				temp.setDepth(this.depth +1);
+				//move two at a time to the other side of bridge forward
+				temp.sideStart.add(temp.sideEnd.get(i));
+				temp.sideStart.add(temp.sideEnd.get(j));
+				int speedi = temp.sideEnd.get(i);
+				int speedj = temp.sideEnd.get(j);
+
+				temp.totalTime = temp.totalTime + ((speedi <= speedj) ? speedj: speedi);
+				temp.cost += ((speedi <= speedj) ? speedj: speedi);
+				temp.cost2 +=  speedj + speedi;
+				temp.sideEnd.remove(j);
+				temp.sideEnd.remove(i);
+				temp.torch = !this.torch;
+				subNodes.add(temp);
+			}
+		}
+	}
+	
+	private void cross1StartToEnd(ArrayList<ProblemModel> subNodes) {
+		for(int i = 0; i < this.sideStart.size() ; i ++){
+			ProblemModel temp = new ProblemModel(sideStart, sideEnd, totalTime);
+			temp.setPredecessor(this);
+			temp.setDepth(this.depth +1);
+			temp.sideEnd.add(temp.sideStart.get(i));
+
+			temp.totalTime = temp.totalTime +  (temp.sideStart.get(i));
+			temp.cost += (temp.sideStart.get(i));
+			temp.cost2 += (temp.sideStart.get(i));
+
+			temp.sideStart.remove(i);
+			temp.torch = !this.isTorch();
+
+
+			subNodes.add(temp);
+		}
+	}
+	
+	private void cross2StartToEnd(ArrayList<ProblemModel> subNodes) {
+		for(int i = 0; i < this.sideStart.size(); i ++){
+			for(int j = i+1; j < this.sideStart.size(); j ++){
+				ProblemModel temp = new ProblemModel(sideStart, sideEnd, totalTime);
+				temp.setPredecessor(this);
+				temp.setDepth(this.depth +1);
+
+				//move two at a time to the other side of bridge forward
+				temp.sideEnd.add(temp.sideStart.get(i));
+				temp.sideEnd.add(temp.sideStart.get(j));
+				int speedi = temp.sideStart.get(i);
+				int speedj = temp.sideStart.get(j);
+
+				temp.totalTime += ((speedi <= speedj) ? speedj: speedi);
+				temp.cost += ((speedi <= speedj) ? speedj: speedi);
+				temp.cost2 +=  speedj + speedi;
+
+				temp.sideStart.remove(j);
+				temp.sideStart.remove(i);
+
+
+				temp.torch = !torch;
+
+
+				subNodes.add(temp);
+
+			}
+		}
+	}
+	
+	private void moveRightToLeft(ArrayList<ProblemModel> subNodes) {
+		if(this.sideStart.size() > 1){
+			cross2StartToEnd(subNodes);
+			cross1StartToEnd(subNodes);
+		}else {
+			cross1StartToEnd(subNodes);
+
+		}
+	}
+	
+	private void moveLeftToRight(ArrayList<ProblemModel> subNodes) {
+		if(this.sideEnd.size() > 1){
+			cross2EndToStart(subNodes);
+			cross1EndToStart(subNodes);
+		} else {
+			cross1EndToStart(subNodes);
+		}
+	}
+	
+	public ArrayList<ProblemModel> getSubNodes(){
+		ArrayList<ProblemModel> subNodes = new ArrayList<ProblemModel>();
+		if(this.torch) {
+			moveRightToLeft(subNodes);	
+		}
+		else {
+			moveLeftToRight(subNodes);
+		}	
+		return subNodes;
+	}
+	
+	public boolean areEqualLists(ArrayList<Integer> list1, ArrayList<Integer> list2)
+	{
+		if(list1==null && list2==null)
+			return true;
+		if((list1 == null && list2 != null) || (list1 != null && list2 == null))
+			return false;
+
+		if(list1.size()!=list2.size())
+			return false;
+		for(Object itemList1: list1)
+		{
+			if(!list2.contains(itemList1))
+				return false;
+			if(Collections.frequency(list1, itemList1) != Collections.frequency(list2, itemList1))
+				return false;
+		}
+
+		return true;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (!ProblemModel.class.isAssignableFrom(obj.getClass())) {
+			return false;
+		}
+		final ProblemModel other = (ProblemModel) obj;
+		if (!areEqualLists(this.sideStart, other.getSideStart())){
+			return false;
+		}
+		if (!areEqualLists(this.sideEnd, other.getSideEnd())){
+			return false;
+		}
+		if (this.isTorch() != other.isTorch()){
+			return false;
+		}
+
+		return true;
+	}
+}
+
+
+//run class
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class run {
+private static ArrayList<Integer> start = new ArrayList<Integer>();
+	
+	public static void main(String args[]){
+		ProblemModel pm = new ProblemModel();
+		Scanner sc = new Scanner(System.in);
+		
+		System.out.println("Welcome to the Dangerous Crossing Problem");
+		System.out.println("Please type in the People's Speeds Seperated by a comma: ");
+		
+		String s = sc.nextLine();
+		String inputs[] = s.split(",");
+		for(String num: inputs){
+				s = s.replaceAll("\\s", "");
+				
+				try{
+					int speed = Integer.parseInt(num);
+					start.add(speed);
+				}catch(NumberFormatException e1){
+						System.out.println( num + ": Invalid number Spotted, Please Try again"); 
+						System.exit(0);
+				}
+		
+		}
+		
+		pm.setSideStart(start);
+		System.out.println("Start: " ); 
+		for (Integer r : pm.getSideStart())System.out.print(" " + r);
+		System.out.println("\n"+"End: " ); 
+		for (Integer r : pm.getSideEnd())System.out.print(" " + r);
+		System.out.println("Total Time: " + pm.getTotalTime());
+		System.out.println("-----------------------------");
+		
+		BfsAI bf = new BfsAI(pm);
+		DfsAI df = new DfsAI(pm);
+		Astar a1 = new Astar(pm);
+		
+		
+		System.out.println("Please type in Strategy: \n");
+		System.out.println("BFS - Breadth First");
+		System.out.println("DFS - depth First, ");
+		System.out.println("AS - A-Star one: sum of cost of current crossers' time");
+		s = sc.nextLine();
+		s = s.toLowerCase();
+		if(s.equals("bfs")) bf.solve();
+		else if(s.equals("dfs")) df.solve();
+		else if(s.equals("as")) a1.solve();
+		else{
+			System.out.println( s + ": Invalid input, Please Try again");
+			System.exit(0);
+		}
+	}
+}
